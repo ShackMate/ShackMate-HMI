@@ -246,7 +246,28 @@ curl -sSL https://raw.githubusercontent.com/ShackMate/ShackMate-HMI/main/make-bo
 sudo reboot
 ```
 
-This enhanced script:
+**⚠️ CAUTION**: The enhanced silent boot script is very aggressive and may cause boot issues on some systems.
+
+### Boot Issues Recovery
+
+If you're stuck on the logo or having boot problems after using the enhanced silent boot:
+
+```bash
+# Emergency boot recovery (fixes boot issues)
+curl -sSL https://raw.githubusercontent.com/ShackMate/ShackMate-HMI/main/fix-boot-issues.sh | sudo bash
+
+# Then reboot
+sudo reboot
+```
+
+This recovery script:
+
+- ✅ Restores loglevel=3 (safer than loglevel=0)
+- ✅ Removes console redirection
+- ✅ Re-enables essential services
+- ✅ Fixes boot hanging issues
+
+The enhanced silent boot script:
 
 - ✅ Sets kernel log level to 0 (completely silent)
 - ✅ Redirects console to tty3 (not visible on main display)
