@@ -126,9 +126,9 @@ This will:
 
 - ✅ Download and install ShackMate logo
 - ✅ Create custom boot splash service
-- ✅ Replace Raspberry Pi logo with ShackMate logo (1024x600)
+- ✅ Replace Raspberry Pi logo with ShackMate logo
 - ✅ Keep quiet boot but show branded splash
-- ✅ Configure framebuffer for optimal display
+- ✅ Configure for touchscreen compatibility
 
 ---
 
@@ -171,7 +171,7 @@ This will:
 └── ShackMateLogo.png        # ShackMate logo file
 
 /boot/firmware/
-├── splash.png               # Custom boot splash image (1024x600)
+├── splash.png               # Custom boot splash image
 ├── cmdline.txt              # Modified for quiet boot
 └── config.txt               # Modified to disable default splash
 ```
@@ -214,6 +214,24 @@ cat /etc/hosts
 
 # Check for shackmate.router entry
 grep "shackmate.router" /etc/hosts
+```
+
+### Touchscreen Issues
+
+If touchscreen stops working after installation:
+
+```bash
+# Fix touchscreen issues (removes problematic framebuffer settings)
+curl -sSL https://raw.githubusercontent.com/ShackMate/ShackMate-HMI/main/fix-touchscreen.sh | sudo bash
+
+# Or manually remove framebuffer settings
+sudo sed -i '/^framebuffer_width=/d' /boot/firmware/config.txt
+sudo sed -i '/^framebuffer_height=/d' /boot/firmware/config.txt
+sudo reboot
+
+# Check if touchscreen devices are detected
+ls /dev/input/
+cat /proc/bus/input/devices | grep -i touch
 ```
 
 ---

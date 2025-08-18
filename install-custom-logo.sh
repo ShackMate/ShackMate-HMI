@@ -50,13 +50,10 @@ apt-get install -y fbi imagemagick
 BOOT_LOGO="/boot/firmware/splash.png"
 echo "🖼️  Preparing boot splash image..."
 
-# Get screen resolution (using 1024x600 for ShackMate display)
-SCREEN_WIDTH=1024
-SCREEN_HEIGHT=600
-
-# Resize and center the logo for boot splash
-convert "$FINAL_LOGO" -resize 1024x600 -background black -gravity center -extent ${SCREEN_WIDTH}x${SCREEN_HEIGHT} "$BOOT_LOGO"
-echo "✅ Boot splash image created at $BOOT_LOGO (1024x600)"
+# Create a centered logo on black background without forcing resolution
+# Let the system auto-detect the proper display resolution
+convert "$FINAL_LOGO" -resize 400x400 -background black -gravity center -extent 800x600 "$BOOT_LOGO"
+echo "✅ Boot splash image created at $BOOT_LOGO"
 
 # Create boot splash service
 echo "🔧 Creating boot splash service..."
@@ -106,20 +103,7 @@ if [ -f "$CONFIG_FILE" ]; then
         sed -i '/^\[all\]/a disable_splash=1' "$CONFIG_FILE"
     fi
     
-    # Ensure framebuffer is enabled for our custom splash
-    if grep -q "^framebuffer_width=" "$CONFIG_FILE"; then
-        sed -i "s/^framebuffer_width=.*/framebuffer_width=$SCREEN_WIDTH/" "$CONFIG_FILE"
-    else
-        sed -i "/^\[all\]/a framebuffer_width=$SCREEN_WIDTH" "$CONFIG_FILE"
-    fi
-    
-    if grep -q "^framebuffer_height=" "$CONFIG_FILE"; then
-        sed -i "s/^framebuffer_height=.*/framebuffer_height=$SCREEN_HEIGHT/" "$CONFIG_FILE"
-    else
-        sed -i "/^\[all\]/a framebuffer_height=$SCREEN_HEIGHT" "$CONFIG_FILE"
-    fi
-    
-    echo "✅ Updated $CONFIG_FILE with 1024x600 framebuffer settings"
+    echo "✅ Updated $CONFIG_FILE (disabled rainbow splash, keeping auto-resolution)"
 else
     echo "❌ Error: $CONFIG_FILE not found"
     exit 1
@@ -133,9 +117,9 @@ echo "✨ ShackMate custom boot logo installation completed!"
 echo ""
 echo "📋 What was installed:"
 echo "   • ShackMate logo: $FINAL_LOGO"
-echo "   • Boot splash image: $BOOT_LOGO (1024x600)"
+echo "   • Boot splash image: $BOOT_LOGO"
 echo "   • Boot splash service: shackmate-splash.service"
-echo "   • Updated boot configuration for 1024x600 display"
+echo "   • Updated boot configuration (touchscreen-friendly)"
 echo ""
 echo "🔄 To see the custom logo, reboot your Raspberry Pi:"
 echo "   sudo reboot"
