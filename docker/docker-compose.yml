@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   # ShackMate HMI Web Application
@@ -6,10 +6,10 @@ services:
     build: .
     container_name: shackmate-hmi
     ports:
-      - "80:80"      # Web interface
-      - "139:139"    # SMB
-      - "445:445"    # SMB
-      - "4210:4210/udp"  # UDP listener
+      - "80:80" # Web interface
+      - "139:139" # SMB
+      - "445:445" # SMB
+      - "4210:4210/udp" # UDP listener
     volumes:
       - ./web:/var/www/html
       - shackmate_logs:/var/log
@@ -18,8 +18,8 @@ services:
     restart: unless-stopped
     networks:
       - shackmate-network
-    privileged: true  # May be needed for SMB
-    
+    privileged: true # May be needed for SMB
+
   # Optional: Portainer for container management
   portainer:
     image: portainer/portainer-ce:latest
