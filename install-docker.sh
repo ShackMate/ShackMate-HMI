@@ -94,61 +94,84 @@ fi
 
 # Download Docker configuration from GitHub
 echo "📥 Downloading Docker configuration from GitHub..."
-GITHUB_DOCKER_URL="https://api.github.com/repos/ShackMate/ShackMate-HMI/contents/docker"
+GITHUB_REPO_URL="https://github.com/ShackMate/ShackMate-HMI.git"
 TEMP_DIR="/tmp/shackmate-docker-$$"
 
 mkdir -p "$TEMP_DIR"
 
-# Function to download directory contents recursively
-download_directory() {
-    local url="$1"
-    local local_path="$2"
-    
-    # Get directory contents from GitHub API
-    curl -s "$url" | grep -E '"download_url":' | cut -d'"' -f4 | while read -r file_url; do
-        if [ -n "$file_url" ]; then
-            # Extract filename from URL
-            filename=$(basename "$file_url")
-            echo "  📄 Downloading $filename..."
-            curl -s "$file_url" -o "$local_path/$filename"
-        fi
-    done
-    
-    # Handle subdirectories
-    curl -s "$url" | grep -E '"type": "dir"' -B 3 | grep '"name":' | cut -d'"' -f4 | while read -r dirname; do
-        if [ -n "$dirname" ]; then
-            echo "  📁 Processing subdirectory: $dirname"
-            mkdir -p "$local_path/$dirname"
-            download_directory "$url/$dirname" "$local_path/$dirname"
-        fi
-    done
-}
-
-# Check if docker folder exists in GitHub repo
-if curl -s "$GITHUB_DOCKER_URL" | grep -q '"name":'; then
-    echo "✅ Found Docker configuration in GitHub repo"
-    download_directory "$GITHUB_DOCKER_URL" "$TEMP_DIR"
-    
-    # Copy files to user's docker directory
-    if [ "$(ls -A $TEMP_DIR 2>/dev/null)" ]; then
-        cp -r "$TEMP_DIR"/* "$DOCKER_DIR/"
-        chown -R "$REAL_USER:$REAL_USER" "$DOCKER_DIR"
-        echo "✅ Docker configuration restored to $DOCKER_DIR"
+# Method 1: Try using git (most reliable)
+if command -v git >/dev/null 2>&1; then
+    echo "🔄 Using git to download Docker configuration..."
+    if git clone --depth 1 --filter=blob:none --sparse "$GITHUB_REPO_URL" "$TEMP_DIR" 2>/dev/null; then
+        cd "$TEMP_DIR"
+        git sparse-checkout set docker
+        cd - >/dev/null
         
-        # List what was restored
-        echo ""
-        echo "📋 Restored Docker files:"
-        find "$DOCKER_DIR" -type f | sed 's|'"$DOCKER_DIR"'/|  • |'
+        if [ -d "$TEMP_DIR/docker" ]; then
+            echo "✅ Successfully downloaded Docker configuration using git"
+            DOWNLOAD_SUCCESS=true
+        else
+            echo "⚠️  Git clone succeeded but docker folder not found"
+            DOWNLOAD_SUCCESS=false
+        fi
     else
-        echo "ℹ️  No files found in GitHub docker folder"
+        echo "⚠️  Git clone failed, trying alternative method..."
+        DOWNLOAD_SUCCESS=false
     fi
 else
-    echo "ℹ️  No Docker configuration found in GitHub repo"
-    echo "   Add your docker files to the repo's docker/ folder to enable automatic restore"
+    echo "ℹ️  Git not available, using alternative download method..."
+    DOWNLOAD_SUCCESS=false
 fi
 
-# Clean up
-rm -rf "$TEMP_DIR"
+# Method 2: Download tarball and extract (fallback)
+if [ "$DOWNLOAD_SUCCESS" != "true" ]; then
+    echo "🔄 Using tarball download method..."
+    TARBALL_URL="https://github.com/ShackMate/ShackMate-HMI/archive/refs/heads/main.tar.gz"
+    
+    if curl -sSL "$TARBALL_URL" | tar -xz -C "$TEMP_DIR" --strip-components=1; then
+        if [ -d "$TEMP_DIR/docker" ]; then
+            echo "✅ Successfully downloaded Docker configuration using tarball"
+            DOWNLOAD_SUCCESS=true
+        else
+            echo "❌ Tarball download succeeded but docker folder not found"
+            DOWNLOAD_SUCCESS=false
+        fi
+    else
+        echo "❌ Tarball download failed"
+        DOWNLOAD_SUCCESS=false
+    fi
+fi
+
+# Check if we have the docker configuration
+if [ "$DOWNLOAD_SUCCESS" = "true" ] && [ -d "$TEMP_DIR/docker" ]; then
+    echo "✅ Found Docker configuration in download"
+    
+    # Copy files to user's docker directory
+    echo "📁 Copying Docker configuration files..."
+    cp -r "$TEMP_DIR/docker"/* "$DOCKER_DIR/"
+    chown -R "$REAL_USER:$REAL_USER" "$DOCKER_DIR"
+    echo "✅ Docker configuration restored to $DOCKER_DIR"
+    
+    # List what was restored
+    echo ""
+    echo "📋 Restored Docker files:"
+    find "$DOCKER_DIR" -type f | sed 's|'"$DOCKER_DIR"'/|  • |' | head -20
+    total_files=$(find "$DOCKER_DIR" -type f | wc -l)
+    if [ "$total_files" -gt 20 ]; then
+        echo "  ... and $((total_files - 20)) more files"
+    fi
+    echo "   Total files: $total_files"
+else
+    echo "❌ Failed to download Docker configuration from GitHub"
+    echo "   The installation will continue, but Docker configuration won't be restored"
+    echo "   You can manually copy your docker files or use the pull-docker-config.sh script"
+fi
+
+# Clean up temporary directory
+if [ -d "$TEMP_DIR" ]; then
+    rm -rf "$TEMP_DIR"
+    echo "🧹 Cleaned up temporary files"
+fi
 
 # Create a sample docker-compose.yml if none exists
 COMPOSE_FILE="$DOCKER_DIR/docker-compose.yml"
