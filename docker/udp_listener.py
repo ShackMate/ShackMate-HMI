@@ -6,8 +6,8 @@ import os
 from datetime import datetime
 
 UDP_PORT = 4210
-HOSTS_PATH = "/etc/hosts"
-BACKUP_DIR = "/opt/shackmate/backups"
+HOSTS_PATH = "/etc/hosts"  # Fixed: was /mnt/host_etc_hosts
+BACKUP_DIR = "/var/log/shackmate"  # Different path for container
 
 # Ensure backup directory exists
 os.makedirs(BACKUP_DIR, exist_ok=True)
@@ -88,7 +88,7 @@ sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 sock.bind(('', UDP_PORT))
 
-print(f"🎧 ShackMate UDP Listener started on port {UDP_PORT}")
+print(f"🎧 ShackMate UDP Listener (Docker) started on port {UDP_PORT}")
 print(f"📁 Hosts file: {HOSTS_PATH}")
 print(f"💾 Backups: {BACKUP_DIR}")
 print("Waiting for router discovery packets...")

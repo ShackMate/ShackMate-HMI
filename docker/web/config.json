@@ -1,0 +1,14 @@
+{
+  "display_address": "EE",
+  "socket_server": "ws://shackmate.router:4000/ws",
+  "radios": [
+    {
+      "type": "IC-9700",
+      "address": "A2"
+    },
+    {
+      "type": "IC-7300",
+      "address": "94"
+    }
+  ]
+}

@@ -1,0 +1,196 @@
+/* rotor.css */
+
+/* ----------------- General Styles ----------------- */
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #000;
+  font-family: sans-serif;
+}
+
+svg {
+  display: block;
+  margin: 0 auto;
+}
+
+/* Prevent text selection during clicks/drags */
+text {
+  user-select: none;
+}
+
+/* ----------------- Header and Top Bar ----------------- */
+/* The top background (first rect in the SVG) is set in the SVG itself.
+   Here we style header text if needed. */
+#mainSvg text {
+  /* In case you want to override default text styles */
+}
+
+/* ----------------- Toggle Buttons ----------------- */
+#toggle-button rect {
+  fill: blue;
+  stroke: #999;
+  stroke-width: 1;
+}
+
+#toggle-button text {
+  fill: white;
+  font-size: 14px;
+  text-anchor: middle;
+}
+
+#rotors-toggle-button rect {
+  fill: green;
+  stroke: #999;
+  stroke-width: 1;
+}
+
+#rotors-toggle-button text {
+  fill: white;
+  font-size: 12px;
+  text-anchor: middle;
+}
+
+/* ----------------- Calibrate Button ----------------- */
+#cal-button rect {
+  fill: orange;
+  stroke: #999;
+  stroke-width: 1;
+}
+
+#cal-button text {
+  fill: white;
+  font-size: 14px;
+  text-anchor: middle;
+}
+
+/* ----------------- M1–M6 Buttons ----------------- */
+#m-buttons .m-button rect {
+  fill: #555;
+  stroke: #999;
+  stroke-width: 1;
+}
+
+#m-buttons .m-button text {
+  fill: white;
+  font-size: 14px;
+  text-anchor: middle;
+}
+
+/* ----------------- AZ and EL Meters ----------------- */
+/* Both analog and digital meters share similar styles */
+#analogAZGroup rect,
+#digitalAZGroup rect,
+#analogELGroup rect,
+#digitalELGroup rect {
+  fill: black;
+  stroke: white;
+  stroke-width: 2;
+}
+
+/* The meter ellipse (background behind the meter title) */
+#analogAZGroup ellipse,
+#digitalAZGroup ellipse,
+#analogELGroup ellipse,
+#digitalELGroup ellipse {
+  stroke: none;
+}
+
+/* Meter title texts */
+#analogAZGroup text,
+#digitalAZGroup text,
+#analogELGroup text,
+#digitalELGroup text {
+  user-select: none;
+}
+
+/* Blue target value displays inside meters */
+#targetAZDisplayAnalog,
+#targetAZDisplayDigital,
+#targetELDisplayAnalog,
+#targetELDisplayDigital {
+  font-size: 18px;
+  fill: blue;
+  font-weight: bold;
+}
+
+/* ----------------- Scale (Ticks, Labels, Pointer Lines) ----------------- */
+/* You can also style these via JS; here’s a base style if needed */
+#azTicks line,
+#elTicks line {
+  stroke: white;
+}
+
+#azLabels text,
+#elLabels text {
+  fill: white;
+  font-size: 16px;
+  font-weight: bold;
+  text-anchor: middle;
+  dominant-baseline: middle;
+}
+
+/* Red pointer lines for AZ and EL scales */
+#azPointerLine,
+#elPointerLine {
+  stroke: red;
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+
+/* ----------------- Indicators on the Plot ----------------- */
+#rotorIndicator {
+  fill: none;
+  stroke: red;
+  stroke-width: 2;
+}
+
+#targetIndicator line {
+  stroke: blue;
+  stroke-width: 2;
+}
+
+/* ----------------- Position Plot Text ----------------- */
+#posPlot text {
+  fill: green;
+  font-size: 14px;
+  text-anchor: middle;
+}
+
+/* ----------------- Numeric Keypad ----------------- */
+#keypadGroup rect {
+  fill: black;
+  stroke: white;
+  stroke-width: 2;
+}
+
+#keypadPrompt {
+  fill: white;
+  font-size: 16px;
+  text-anchor: start;
+}
+
+#keypadDisplay {
+  fill: white;
+  font-size: 20px;
+  text-anchor: end;
+}
+
+.keypad-btn rect {
+  fill: blue;
+  rx: 5;
+}
+
+.keypad-btn text {
+  fill: white;
+  font-size: 20px;
+  text-anchor: middle;
+}
+
+/* Adjust font size for CLEAR and ENTER keys */
+.keypad-btn[data-value="CLEAR"] text,
+.keypad-btn[data-value="ENTER"] text {
+  font-size: 14px;
+}
+
+/* ----------------- Additional Styles ----------------- */
+/* Add any further styles you require for hover effects, transitions, etc. */

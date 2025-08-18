@@ -17,6 +17,8 @@ This will:
 - ✅ Disable boot splash screens and verbose text
 - ✅ Install custom ShackMate logo as boot splash
 - ✅ Install ShackMate UDP Listener service
+- ✅ Install Docker and Docker Compose
+- ✅ Restore Docker configuration from GitHub
 - ✅ Create and start systemd service
 - ✅ Enable auto-start on boot
 - ✅ Set up proper file permissions and directories
@@ -63,9 +65,67 @@ sudo systemctl enable shackmate-udp-listener
 
 1. **Listens** for UDP packets on port 4210
 2. **Parses** messages in format: `ShackMate,IP_ADDRESS,PORT`
-3. **Updates** `/etc/hosts` with: `IP_ADDRESS shackmate.router`
-4. **Removes** old entries before adding new ones
-5. **Logs** all activity to systemd journal
+3. **Safely updates** `/etc/hosts` with: `IP_ADDRESS shackmate.router`
+4. **Preserves** all existing hosts file entries
+5. **Creates backups** before modifying hosts file
+6. **Removes** only old shackmate.router entries (prevents duplicates)
+7. **Logs** all activity to systemd journal
+
+**Hosts File Safety**: The UDP listener preserves all existing entries in `/etc/hosts` and only updates the `shackmate.router` entry. Automatic backups are created before each modification.
+
+---
+
+## Docker Configuration
+
+The complete installation automatically installs Docker and restores your Docker configuration from the GitHub repository.
+
+### Standalone Docker Installation
+
+If you only want to install Docker and restore configuration:
+
+```bash
+curl -sSL https://raw.githubusercontent.com/ShackMate/ShackMate-HMI/main/install-docker.sh | sudo bash
+```
+
+### What Gets Installed
+
+- ✅ Docker CE (latest stable version)
+- ✅ Docker Compose (latest version)  
+- ✅ User added to docker group
+- ✅ Docker service enabled and auto-started
+- ✅ Docker configuration restored to `~/docker`
+
+### Adding Your Docker Configuration
+
+1. **Add your Docker files** to the `docker/` folder in this GitHub repository
+2. **Commit and push** to GitHub
+3. **Future installations** will automatically restore your configuration
+
+### Example Docker Files
+
+- `docker-compose.yml` - Your services configuration
+- `.env` - Environment variables
+- `Dockerfile` - Custom container builds
+- Config folders for your applications
+
+### Using Docker After Installation
+
+```bash
+# Navigate to docker directory
+cd ~/docker
+
+# Start services
+docker-compose up -d
+
+# View running containers
+docker ps
+
+# View logs
+docker-compose logs -f
+
+# Stop services
+docker-compose down
+```
 
 ---
 
@@ -174,6 +234,11 @@ This will:
 ├── splash.png               # Custom boot splash image
 ├── cmdline.txt              # Modified for quiet boot
 └── config.txt               # Modified to disable default splash
+
+~/docker/                    # Docker configuration (restored from GitHub)
+├── docker-compose.yml       # Main compose file
+├── .env                     # Environment variables
+└── services/                # Individual service configurations
 ```
 
 ---
@@ -214,7 +279,15 @@ cat /etc/hosts
 
 # Check for shackmate.router entry
 grep "shackmate.router" /etc/hosts
+
+# View hosts file backups (if any issues occur)
+ls -la /opt/shackmate/backups/hosts.backup.*
+
+# Restore hosts file from backup if needed
+sudo cp /opt/shackmate/backups/hosts.backup.YYYYMMDD_HHMMSS /etc/hosts
 ```
+
+**Note**: The UDP listener automatically creates backups before modifying `/etc/hosts` and preserves all existing entries. Only the `shackmate.router` entry is updated.
 
 ### Touchscreen Issues
 
@@ -276,6 +349,29 @@ The enhanced silent boot script:
 - ✅ Disables getty on tty1
 
 **Note**: This makes boot completely silent but you can still access console via SSH or by switching to tty2/tty3 with Ctrl+Alt+F2/F3.
+
+### Chromium Browser Issues
+
+If Chromium browser won't launch after installation, it may be due to console redirection or disabled services:
+
+```bash
+# Fix Chromium launch issues
+curl -sSL https://raw.githubusercontent.com/ShackMate/ShackMate-HMI/main/fix-chromium-launch.sh | sudo bash
+
+# Then reboot
+sudo reboot
+
+# Diagnose Chromium issues
+curl -sSL https://raw.githubusercontent.com/ShackMate/ShackMate-HMI/main/chromium-diagnostics.sh | bash
+```
+
+This fix script:
+
+- ✅ Removes console redirection that interferes with desktop
+- ✅ Re-enables essential services (getty@tty1, console-setup)
+- ✅ Ensures adequate GPU memory allocation
+- ✅ Enables KMS graphics driver for better compatibility
+- ✅ Fixes display manager service dependencies
 
 ---
 

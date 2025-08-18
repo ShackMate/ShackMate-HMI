@@ -165,6 +165,31 @@ else
 fi
 
 echo ""
+echo "🐳 Step 5: Installing Docker and Configuration"
+echo "=============================================="
+
+# Download and run Docker installation script
+DOCKER_SCRIPT_URL="https://raw.githubusercontent.com/ShackMate/ShackMate-HMI/main/install-docker.sh"
+TEMP_DOCKER_SCRIPT="/tmp/install-docker.sh"
+
+echo "📥 Downloading Docker installation script..."
+if command -v curl >/dev/null 2>&1; then
+    curl -sSL "$DOCKER_SCRIPT_URL" -o "$TEMP_DOCKER_SCRIPT"
+elif command -v wget >/dev/null 2>&1; then
+    wget -q "$DOCKER_SCRIPT_URL" -O "$TEMP_DOCKER_SCRIPT"
+else
+    echo "❌ Error: curl/wget not found"
+    exit 1
+fi
+
+# Run Docker installation script
+chmod +x "$TEMP_DOCKER_SCRIPT"
+"$TEMP_DOCKER_SCRIPT"
+
+# Clean up
+rm -f "$TEMP_DOCKER_SCRIPT"
+
+echo ""
 echo "✨ Installation completed successfully!"
 echo ""
 echo "📋 Summary of changes:"
@@ -175,16 +200,19 @@ echo "   • Systemd service created and started"
 echo "   • Service enabled for auto-start on boot"
 echo "   • Listening on UDP port 4210 for router updates"
 echo "   • Updates /etc/hosts with discovered router IP"
+echo "   • Docker and Docker Compose installed"
+echo "   • Docker configuration restored from GitHub"
 echo ""
 echo "🔄 Next steps:"
-echo "   1. Reboot to apply boot splash changes: sudo reboot"
-echo "   2. Check service logs: sudo journalctl -u shackmate-udp-listener.service -f"
-echo "   3. Test by sending UDP packets to port 4210"
+echo "   1. Reboot to apply all changes: sudo reboot"
+echo "   2. Check UDP service: sudo systemctl status shackmate-udp-listener"
+echo "   3. Test Docker: docker run hello-world"
+echo "   4. Start Docker services: cd ~/docker && docker-compose up -d"
 echo ""
 echo "🛠️  Useful commands:"
-echo "   • Check service status: sudo systemctl status shackmate-udp-listener"
-echo "   • View logs: sudo journalctl -u shackmate-udp-listener -f"
-echo "   • Restart service: sudo systemctl restart shackmate-udp-listener"
-echo "   • Stop service: sudo systemctl stop shackmate-udp-listener"
-echo "   • Disable auto-start: sudo systemctl disable shackmate-udp-listener"
+echo "   • Check UDP service: sudo systemctl status shackmate-udp-listener"
+echo "   • View UDP logs: sudo journalctl -u shackmate-udp-listener -f"
+echo "   • Docker status: docker ps"
+echo "   • Docker logs: docker-compose logs -f"
+echo "   • Stop Docker services: docker-compose down"
 echo ""

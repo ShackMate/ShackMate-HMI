@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>ShackMate WebSocket Monitor</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    #output { border: 1px solid #ccc; padding: 10px; height: 300px; overflow-y: scroll; }
+    #connectionArea, #inputArea { margin-top: 10px; }
+    #ipInput, #portInput, #messageInput { width: 70%; padding: 5px; font-size: 1em; }
+    #connectButton, #sendButton { padding: 5px 10px; font-size: 1em; }
+  </style>
+</head>
+<body>
+  <h1>WebSocket Monitor</h1>
+  <div id="connectionArea">
+    <input type="text" id="ipInput" placeholder="Enter IP address">
+    <input type="text" id="portInput" placeholder="Enter Port #">
+    <button id="connectButton">Connect</button>
+  </div>
+  <pre id="output"></pre>
+  <div id="inputArea">
+    <input type="text" id="messageInput" placeholder="Type a message...">
+    <button id="sendButton">Send</button>
+  </div>
+  <script>
+    let ws;
+    const output = document.getElementById("output");
+    const ipInput = document.getElementById("ipInput");
+    const portInput = document.getElementById("portInput");
+
+    // Load saved IP and port from localStorage
+    window.addEventListener("load", () => {
+      ipInput.value = localStorage.getItem("savedIP") || "";
+      portInput.value = localStorage.getItem("savedPort") || "";
+    });
+
+    function connectWebSocket(ip, port) {
+      if (ws) {
+        ws.close();
+      }
+      const wsUrl = "ws://" + ip + ":" + port + "/ws";
+      ws = new WebSocket(wsUrl);
+
+      ws.onopen = () => output.textContent += "WebSocket connected to " + wsUrl + "\n";
+      ws.onmessage = (event) => output.textContent += "Received: " + event.data + "\n";
+      ws.onerror = (err) => output.textContent += "Error: " + err + "\n";
+      ws.onclose = () => output.textContent += "WebSocket closed\n";
+    }
+
+    document.getElementById("connectButton").addEventListener("click", () => {
+      const ip = ipInput.value.trim();
+      const port = portInput.value.trim();
+      
+      if (ip && port) {
+        // Save IP and Port to localStorage
+        localStorage.setItem("savedIP", ip);
+        localStorage.setItem("savedPort", port);
+        connectWebSocket(ip, port);
+      } else {
+        output.textContent += "Please enter a valid IP address and port number.\n";
+      }
+    });
+
+    document.getElementById("sendButton").addEventListener("click", () => {
+      const msg = document.getElementById("messageInput").value;
+      if (msg && ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(msg);
+        output.textContent += "Sent: " + msg + "\n";
+        document.getElementById("messageInput").value = "";
+      } else {
+        output.textContent += "WebSocket is not connected or message is empty.\n";
+      }
+    });
+
+    // Allow pressing Enter to send the message.
+    document.getElementById("messageInput").addEventListener("keypress", (e) => {
+      if (e.key === "Enter") {
+        document.getElementById("sendButton").click();
+      }
+    });
+  </script>
+</body>
+</html>

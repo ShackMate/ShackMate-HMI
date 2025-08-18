@@ -1,0 +1,56 @@
+﻿body, h1, h2, h3, h4, h5, h6 {
+  font-family: Verdana, Geneva, sans-serif;
+}
+
+body {
+  overflow: hidden; /* Hide scrollbars */
+}
+
+/*html { cursor: none; }*/
+
+.hmi-display {
+	width: 1024px;
+	height: 600px; 
+	max-width: 1024px; 
+	max-height: 600px; 
+	min-width: 1024px; 
+	min-height: 600px;
+}
+
+.hmi-button-narrow {
+	width: 50px;
+	min-width: 50px;
+	max-width: 50px;
+}
+
+.hmi-button {
+	width: 100px;
+	min-width: 100px;
+	max-width: 100px;
+}
+
+.hmi-button, .hmi-button-narrow {
+	text-align: center;
+}
+
+.hmi-display-header {
+	height: 25px;
+	min-height: 25px;
+	max-height: 25px;
+}
+
+.hmi-display-footer {
+	height: 50px;
+	min-height: 50px;
+	max-height: 50px;
+}
+
+.hmi-display-body {
+	height: 525px;
+	min-height: 525px;
+	max-height: 525px;
+	width: 990px;
+	min-width: 990px;
+	max-width: 990px;
+}
+
