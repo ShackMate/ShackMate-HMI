@@ -32,7 +32,7 @@ The UDP listener service automatically updates the hosts file when it receives r
 - **Service Name**: `shackmate-udp-listener`
 - **Install Location**: `/opt/shackmate/udp_listener.py`
 - **UDP Port**: 4210
-- **Hosts File**: `/mnt/host_etc_hosts`
+- **Hosts File**: `/etc/hosts`
 
 ### Service Management
 
@@ -63,7 +63,7 @@ sudo systemctl enable shackmate-udp-listener
 
 1. **Listens** for UDP packets on port 4210
 2. **Parses** messages in format: `ShackMate,IP_ADDRESS,PORT`
-3. **Updates** `/mnt/host_etc_hosts` with: `IP_ADDRESS shackmate.router`
+3. **Updates** `/etc/hosts` with: `IP_ADDRESS shackmate.router`
 4. **Removes** old entries before adding new ones
 5. **Logs** all activity to systemd journal
 
@@ -126,8 +126,9 @@ This will:
 
 - ✅ Download and install ShackMate logo
 - ✅ Create custom boot splash service
-- ✅ Replace Raspberry Pi logo with ShackMate logo
+- ✅ Replace Raspberry Pi logo with ShackMate logo (1024x600)
 - ✅ Keep quiet boot but show branded splash
+- ✅ Configure framebuffer for optimal display
 
 ---
 
@@ -163,16 +164,16 @@ This will:
 ├── shackmate-udp-listener.service  # UDP listener systemd service
 └── shackmate-splash.service        # Custom boot splash service
 
+/etc/
+└── hosts                    # System hosts file (managed by UDP listener)
+
 /usr/share/pixmaps/
 └── ShackMateLogo.png        # ShackMate logo file
 
 /boot/firmware/
-├── splash.png               # Custom boot splash image
+├── splash.png               # Custom boot splash image (1024x600)
 ├── cmdline.txt              # Modified for quiet boot
 └── config.txt               # Modified to disable default splash
-
-/mnt/
-└── host_etc_hosts           # Hosts file managed by UDP listener
 ```
 
 ---
@@ -206,10 +207,13 @@ sudo ufw status
 
 ```bash
 # Check hosts file permissions
-ls -la /mnt/host_etc_hosts
+ls -la /etc/hosts
 
 # Manually verify hosts file content
-cat /mnt/host_etc_hosts
+cat /etc/hosts
+
+# Check for shackmate.router entry
+grep "shackmate.router" /etc/hosts
 ```
 
 ---

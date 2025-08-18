@@ -19,7 +19,7 @@ SyslogIdentifier=shackmate-udp
 NoNewPrivileges=true
 PrivateTmp=true
 ProtectSystem=strict
-ReadWritePaths=/mnt/host_etc_hosts
+ReadWritePaths=/etc/hosts
 ProtectHome=true
 
 [Install]

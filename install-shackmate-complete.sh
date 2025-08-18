@@ -115,31 +115,9 @@ fi
 
 echo "✅ Service file installed to $SERVICE_PATH"
 
-# Create the hosts mount directory if it doesn't exist
-HOSTS_DIR="/mnt"
-if [ ! -d "$HOSTS_DIR" ]; then
-    mkdir -p "$HOSTS_DIR"
-    echo "✅ Created $HOSTS_DIR directory"
-fi
-
-# Create a placeholder hosts file if it doesn't exist
-HOSTS_FILE="/mnt/host_etc_hosts"
-if [ ! -f "$HOSTS_FILE" ]; then
-    cat > "$HOSTS_FILE" << EOF
-# This file is managed by ShackMate UDP Listener
-# It will be automatically updated with router information
-127.0.0.1 localhost
-::1 localhost ip6-localhost ip6-loopback
-ff02::1 ip6-allnodes
-ff02::2 ip6-allrouters
-EOF
-    echo "✅ Created placeholder hosts file at $HOSTS_FILE"
-fi
-
 # Ensure proper permissions
 chown root:root "$UDP_SCRIPT_PATH"
 chown root:root "$SERVICE_PATH"
-chown root:root "$HOSTS_FILE"
 
 echo ""
 echo "🔄 Step 3: Configuring and Starting Service"
@@ -196,6 +174,7 @@ echo "   • ShackMate UDP Listener installed to $INSTALL_DIR"
 echo "   • Systemd service created and started"
 echo "   • Service enabled for auto-start on boot"
 echo "   • Listening on UDP port 4210 for router updates"
+echo "   • Updates /etc/hosts with discovered router IP"
 echo ""
 echo "🔄 Next steps:"
 echo "   1. Reboot to apply boot splash changes: sudo reboot"

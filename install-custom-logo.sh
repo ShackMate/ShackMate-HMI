@@ -50,13 +50,13 @@ apt-get install -y fbi imagemagick
 BOOT_LOGO="/boot/firmware/splash.png"
 echo "🖼️  Preparing boot splash image..."
 
-# Get screen resolution (default to common Pi resolution if unknown)
-SCREEN_WIDTH=1920
-SCREEN_HEIGHT=1080
+# Get screen resolution (using 1024x600 for ShackMate display)
+SCREEN_WIDTH=1024
+SCREEN_HEIGHT=600
 
 # Resize and center the logo for boot splash
-convert "$FINAL_LOGO" -resize 400x400 -background black -gravity center -extent ${SCREEN_WIDTH}x${SCREEN_HEIGHT} "$BOOT_LOGO"
-echo "✅ Boot splash image created at $BOOT_LOGO"
+convert "$FINAL_LOGO" -resize 1024x600 -background black -gravity center -extent ${SCREEN_WIDTH}x${SCREEN_HEIGHT} "$BOOT_LOGO"
+echo "✅ Boot splash image created at $BOOT_LOGO (1024x600)"
 
 # Create boot splash service
 echo "🔧 Creating boot splash service..."
@@ -119,7 +119,7 @@ if [ -f "$CONFIG_FILE" ]; then
         sed -i "/^\[all\]/a framebuffer_height=$SCREEN_HEIGHT" "$CONFIG_FILE"
     fi
     
-    echo "✅ Updated $CONFIG_FILE"
+    echo "✅ Updated $CONFIG_FILE with 1024x600 framebuffer settings"
 else
     echo "❌ Error: $CONFIG_FILE not found"
     exit 1
@@ -133,9 +133,9 @@ echo "✨ ShackMate custom boot logo installation completed!"
 echo ""
 echo "📋 What was installed:"
 echo "   • ShackMate logo: $FINAL_LOGO"
-echo "   • Boot splash image: $BOOT_LOGO"
+echo "   • Boot splash image: $BOOT_LOGO (1024x600)"
 echo "   • Boot splash service: shackmate-splash.service"
-echo "   • Updated boot configuration"
+echo "   • Updated boot configuration for 1024x600 display"
 echo ""
 echo "🔄 To see the custom logo, reboot your Raspberry Pi:"
 echo "   sudo reboot"

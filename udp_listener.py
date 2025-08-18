@@ -3,7 +3,7 @@ import socket
 import re
 
 UDP_PORT = 4210
-HOSTS_PATH = "/mnt/host_etc_hosts"
+HOSTS_PATH = "/etc/hosts"
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
