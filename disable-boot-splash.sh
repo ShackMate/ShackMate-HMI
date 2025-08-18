@@ -50,13 +50,13 @@ if [ -f /boot/firmware/cmdline.txt ]; then
     CMDLINE=$(cat /boot/firmware/cmdline.txt)
     
     # Remove any existing quiet/splash parameters to avoid duplicates
-    CMDLINE=$(echo "$CMDLINE" | sed 's/quiet//g' | sed 's/splash//g' | sed 's/loglevel=[0-9]//g' | sed 's/logo\.nologo//g' | sed 's/vt\.global_cursor_default=[0-9]//g')
+    CMDLINE=$(echo "$CMDLINE" | sed 's/quiet//g' | sed 's/splash//g' | sed 's/loglevel=[0-9]//g' | sed 's/logo\.nologo//g' | sed 's/vt\.global_cursor_default=[0-9]//g' | sed 's/console=[a-zA-Z0-9,]*//g' | sed 's/plymouth\.ignore-serial-consoles//g')
     
     # Clean up extra spaces
     CMDLINE=$(echo "$CMDLINE" | sed 's/  */ /g' | sed 's/^ *//' | sed 's/ *$//')
     
-    # Add our parameters
-    NEW_CMDLINE="$CMDLINE quiet splash loglevel=1 logo.nologo vt.global_cursor_default=0"
+    # Add our parameters for completely silent boot
+    NEW_CMDLINE="$CMDLINE quiet splash loglevel=0 logo.nologo vt.global_cursor_default=0 console=tty3 plymouth.ignore-serial-consoles"
     
     # Write the new cmdline
     echo "$NEW_CMDLINE" > /boot/firmware/cmdline.txt

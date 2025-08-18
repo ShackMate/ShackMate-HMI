@@ -234,6 +234,28 @@ ls /dev/input/
 cat /proc/bus/input/devices | grep -i touch
 ```
 
+### Console Text Still Visible
+
+If you still see some console text during boot, use the enhanced silent boot script:
+
+```bash
+# Complete console silence (no text at all during boot)
+curl -sSL https://raw.githubusercontent.com/ShackMate/ShackMate-HMI/main/make-boot-silent.sh | sudo bash
+
+# Then reboot to apply
+sudo reboot
+```
+
+This enhanced script:
+
+- ✅ Sets kernel log level to 0 (completely silent)
+- ✅ Redirects console to tty3 (not visible on main display)
+- ✅ Disables systemd status messages
+- ✅ Masks verbose services
+- ✅ Disables getty on tty1
+
+**Note**: This makes boot completely silent but you can still access console via SSH or by switching to tty2/tty3 with Ctrl+Alt+F2/F3.
+
 ---
 
 ## Restoring Original Settings
