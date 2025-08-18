@@ -227,38 +227,6 @@ else
 fi
 
 echo ""
-echo "Step 5: Locale Configuration Fix (Optional)"
-echo "==========================================="
-
-read -p "Would you like to fix locale settings to prevent warnings? (y/N): " -n 1 -r
-echo
-if [[ $REPLY =~ ^[Yy]$ ]]; then
-    # Download and run locale fix script
-    LOCALE_SCRIPT_URL="https://raw.githubusercontent.com/ShackMate/ShackMate-HMI/main/fix-locale.sh"
-    TEMP_LOCALE_SCRIPT="/tmp/fix-locale.sh"
-    
-    echo "Downloading locale fix script..."
-    if command -v curl >/dev/null 2>&1; then
-        curl -sSL "$LOCALE_SCRIPT_URL" -o "$TEMP_LOCALE_SCRIPT"
-    elif command -v wget >/dev/null 2>&1; then
-        wget -q "$LOCALE_SCRIPT_URL" -O "$TEMP_LOCALE_SCRIPT"
-    else
-        echo "Error: curl/wget not found"
-        exit 1
-    fi
-    
-    # Run locale fix script
-    chmod +x "$TEMP_LOCALE_SCRIPT"
-    "$TEMP_LOCALE_SCRIPT"
-    rm -f "$TEMP_LOCALE_SCRIPT"
-    
-    LOCALE_FIXED=true
-else
-    echo "Skipping locale configuration fix"
-    LOCALE_FIXED=false
-fi
-
-echo ""
 echo "✨ Installation completed successfully!"
 echo ""
 echo "📋 Summary of changes:"
@@ -273,9 +241,6 @@ echo "   • Docker and Docker Compose installed"
 echo "   • Docker configuration restored from GitHub"
 if [ "$CONSOLE_CONFIGURED" = "true" ]; then
     echo "   • Console auto-login configured (boots to command line)"
-fi
-if [ "$LOCALE_FIXED" = "true" ]; then
-    echo "   • Locale settings fixed (no more locale warnings)"
 fi
 echo ""
 echo "🔄 Next steps:"
