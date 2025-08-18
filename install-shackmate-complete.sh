@@ -190,6 +190,43 @@ chmod +x "$TEMP_DOCKER_SCRIPT"
 rm -f "$TEMP_DOCKER_SCRIPT"
 
 echo ""
+echo "🖥️  Step 4: Console Auto-Login Configuration (Optional)"
+echo "======================================================"
+
+read -p "Would you like to configure console auto-login instead of desktop? (y/N): " -n 1 -r
+echo
+if [[ $REPLY =~ ^[Yy]$ ]]; then
+    # Download and run console auto-login script
+    CONSOLE_SCRIPT_URL="https://raw.githubusercontent.com/ShackMate/ShackMate-HMI/main/configure-console-autologin.sh"
+    TEMP_CONSOLE_SCRIPT="/tmp/configure-console-autologin.sh"
+    
+    echo "📥 Downloading console auto-login script..."
+    if command -v curl >/dev/null 2>&1; then
+        curl -sSL "$CONSOLE_SCRIPT_URL" -o "$TEMP_CONSOLE_SCRIPT"
+    elif command -v wget >/dev/null 2>&1; then
+        wget -q "$CONSOLE_SCRIPT_URL" -O "$TEMP_CONSOLE_SCRIPT"
+    else
+        echo "❌ Error: curl/wget not found"
+        exit 1
+    fi
+    
+    # Run console auto-login script (but don't auto-reboot)
+    chmod +x "$TEMP_CONSOLE_SCRIPT"
+    
+    # Modify the script to not auto-reboot (we'll handle that at the end)
+    sed -i '/read -p.*reboot now/,/fi$/d' "$TEMP_CONSOLE_SCRIPT"
+    sed -i '/reboot$/d' "$TEMP_CONSOLE_SCRIPT"
+    
+    "$TEMP_CONSOLE_SCRIPT"
+    rm -f "$TEMP_CONSOLE_SCRIPT"
+    
+    CONSOLE_CONFIGURED=true
+else
+    echo "⏭️  Skipping console auto-login configuration"
+    CONSOLE_CONFIGURED=false
+fi
+
+echo ""
 echo "✨ Installation completed successfully!"
 echo ""
 echo "📋 Summary of changes:"
@@ -202,6 +239,9 @@ echo "   • Listening on UDP port 4210 for router updates"
 echo "   • Updates /etc/hosts with discovered router IP"
 echo "   • Docker and Docker Compose installed"
 echo "   • Docker configuration restored from GitHub"
+if [ "$CONSOLE_CONFIGURED" = "true" ]; then
+    echo "   • Console auto-login configured (boots to command line)"
+fi
 echo ""
 echo "🔄 Next steps:"
 echo "   1. Reboot to apply all changes: sudo reboot"
