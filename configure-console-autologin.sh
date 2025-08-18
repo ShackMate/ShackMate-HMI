@@ -44,7 +44,7 @@ fi
 
 print_status "Configuring console auto-login for user: $REAL_USER"
 
-echo "🔧 Starting Console Auto-Login Configuration..."
+echo "Starting Console Auto-Login Configuration..."
 echo "=================================================="
 
 # Step 1: Set boot target to console (multi-user.target)
@@ -147,7 +147,7 @@ print_success "Revert script created at $REVERT_SCRIPT"
 
 # Step 8: Show current configuration
 echo ""
-echo "📋 Configuration Summary:"
+echo "Configuration Summary:"
 echo "========================"
 echo "• Boot Target: $(systemctl get-default)"
 echo "• Auto-login User: $REAL_USER"
@@ -157,7 +157,7 @@ echo "• Revert Script: $REVERT_SCRIPT"
 echo ""
 print_success "Console auto-login configuration completed!"
 echo ""
-echo "📝 Next Steps:"
+echo "Next Steps:"
 echo "  1. Reboot your Raspberry Pi: sudo reboot"
 echo "  2. The system will boot to console and automatically log in as '$REAL_USER'"
 echo "  3. To revert to desktop auto-login, run: $REVERT_SCRIPT"
@@ -174,5 +174,5 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
     sleep 5
     reboot
 else
-    echo "⏳ Remember to reboot later to apply the changes: sudo reboot"
+    echo "Remember to reboot later to apply the changes: sudo reboot"
 fi
