@@ -1,0 +1,26 @@
+[Unit]
+Description=ShackMate UDP Listener Service
+Documentation=https://github.com/ShackMate/ShackMate-HMI
+After=network.target
+Wants=network.target
+
+[Service]
+Type=simple
+User=root
+Group=root
+ExecStart=/usr/bin/python3 /opt/shackmate/udp_listener.py
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=shackmate-udp
+
+# Security settings
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ReadWritePaths=/mnt/host_etc_hosts
+ProtectHome=true
+
+[Install]
+WantedBy=multi-user.target
