@@ -50,11 +50,92 @@ DOCKER_DIR="$USER_HOME/docker"
 
 print_status "Docker directory: $DOCKER_DIR"
 
-# Ensure Docker directory exists
+# Download Docker configuration if it doesn't exist
 if [ ! -d "$DOCKER_DIR" ]; then
-    print_error "Docker directory not found: $DOCKER_DIR"
-    print_status "Please ensure your Docker configuration is in $DOCKER_DIR"
-    exit 1
+    print_status "Docker directory not found. Downloading from GitHub..."
+    
+    # Create docker directory
+    mkdir -p "$DOCKER_DIR"
+    chown "$REAL_USER:$REAL_USER" "$DOCKER_DIR"
+    
+    # Download docker configuration files
+    GITHUB_RAW="https://raw.githubusercontent.com/ShackMate/ShackMate-HMI/main/docker"
+    
+    print_status "Downloading Docker configuration files..."
+    
+    # Download Dockerfile
+    curl -sSL "$GITHUB_RAW/Dockerfile" -o "$DOCKER_DIR/Dockerfile"
+    
+    # Download docker-compose.yml
+    curl -sSL "$GITHUB_RAW/docker-compose.yml" -o "$DOCKER_DIR/docker-compose.yml"
+    
+    # Download supervisord.conf
+    curl -sSL "$GITHUB_RAW/supervisord.conf" -o "$DOCKER_DIR/supervisord.conf"
+    
+    # Download entrypoint.sh
+    curl -sSL "$GITHUB_RAW/entrypoint.sh" -o "$DOCKER_DIR/entrypoint.sh"
+    chmod +x "$DOCKER_DIR/entrypoint.sh"
+    
+    # Download start-chromium.sh
+    curl -sSL "$GITHUB_RAW/start-chromium.sh" -o "$DOCKER_DIR/start-chromium.sh"
+    chmod +x "$DOCKER_DIR/start-chromium.sh"
+    
+    # Download udp_listener.py
+    curl -sSL "$GITHUB_RAW/udp_listener.py" -o "$DOCKER_DIR/udp_listener.py"
+    chmod +x "$DOCKER_DIR/udp_listener.py"
+    
+    # Download web folder using git sparse-checkout (more reliable for directories)
+    print_status "Downloading web application files..."
+    
+    TEMP_REPO="/tmp/shackmate-repo"
+    rm -rf "$TEMP_REPO"
+    
+    if command -v git >/dev/null 2>&1; then
+        # Use git sparse-checkout for efficient download
+        git clone --depth 1 --filter=blob:none --sparse https://github.com/ShackMate/ShackMate-HMI.git "$TEMP_REPO"
+        cd "$TEMP_REPO"
+        git sparse-checkout set docker/web
+        
+        if [ -d "$TEMP_REPO/docker/web" ]; then
+            cp -r "$TEMP_REPO/docker/web" "$DOCKER_DIR/"
+            print_success "Downloaded web application files"
+        else
+            print_warning "Web folder not found in repository"
+        fi
+        
+        rm -rf "$TEMP_REPO"
+    else
+        # Fallback: download main files manually
+        print_status "Git not available, downloading web files manually..."
+        mkdir -p "$DOCKER_DIR/web"
+        
+        # Download main web files
+        curl -sSL "https://raw.githubusercontent.com/ShackMate/ShackMate-HMI/main/docker/web/index.php" -o "$DOCKER_DIR/web/index.php"
+        curl -sSL "https://raw.githubusercontent.com/ShackMate/ShackMate-HMI/main/docker/web/rig.js" -o "$DOCKER_DIR/web/rig.js" 2>/dev/null || true
+        curl -sSL "https://raw.githubusercontent.com/ShackMate/ShackMate-HMI/main/docker/web/rotor.js" -o "$DOCKER_DIR/web/rotor.js" 2>/dev/null || true
+        curl -sSL "https://raw.githubusercontent.com/ShackMate/ShackMate-HMI/main/docker/web/antenna.js" -o "$DOCKER_DIR/web/antenna.js" 2>/dev/null || true
+        curl -sSL "https://raw.githubusercontent.com/ShackMate/ShackMate-HMI/main/docker/web/w3.css" -o "$DOCKER_DIR/web/w3.css" 2>/dev/null || true
+        curl -sSL "https://raw.githubusercontent.com/ShackMate/ShackMate-HMI/main/docker/web/display.css" -o "$DOCKER_DIR/web/display.css" 2>/dev/null || true
+        curl -sSL "https://raw.githubusercontent.com/ShackMate/ShackMate-HMI/main/docker/web/rig.css" -o "$DOCKER_DIR/web/rig.css" 2>/dev/null || true
+        curl -sSL "https://raw.githubusercontent.com/ShackMate/ShackMate-HMI/main/docker/web/antenna.css" -o "$DOCKER_DIR/web/antenna.css" 2>/dev/null || true
+        curl -sSL "https://raw.githubusercontent.com/ShackMate/ShackMate-HMI/main/docker/web/rotor.css" -o "$DOCKER_DIR/web/rotor.css" 2>/dev/null || true
+    fi
+    
+    # Set ownership of all downloaded files
+    chown -R "$REAL_USER:$REAL_USER" "$DOCKER_DIR"
+    
+    print_success "Downloaded complete Docker configuration to $DOCKER_DIR"
+    
+    # List what was downloaded
+    echo ""
+    echo "📋 Downloaded files:"
+    find "$DOCKER_DIR" -type f | sed 's|'"$DOCKER_DIR"'/|  • |' | head -20
+    total_files=$(find "$DOCKER_DIR" -type f | wc -l)
+    if [ "$total_files" -gt 20 ]; then
+        echo "  ... and $((total_files - 20)) more files"
+    fi
+    echo "   Total files: $total_files"
+    echo ""
 fi
 
 # Create systemd service to start Docker containers on boot
