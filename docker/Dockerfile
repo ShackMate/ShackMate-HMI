@@ -24,6 +24,10 @@ RUN apt-get update && apt-get install -y \
     libnss3 && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
+# Enable Apache modules and configure
+RUN a2enmod rewrite && \
+    echo "ServerName localhost" >> /etc/apache2/apache2.conf
+
 # Create web root (safety)
 RUN mkdir -p /var/www/html
 
