@@ -255,12 +255,8 @@ else
 fi
 
 echo ""
-echo "🖥️  Step 4: Console Auto-Login Configuration (Optional)"
-echo "======================================================"
-
-echo ""
-echo "🖥️  Step 4: Console Auto-Login Configuration (Optional)"
-echo "======================================================"
+echo "🖥️  Step 4: Console Auto-Login Configuration"
+echo "==========================================="
 
 # Check if console auto-login is already configured
 if systemctl get-default | grep -q "multi-user.target" && [ -f "/etc/systemd/system/getty@tty1.service.d/autologin.conf" ]; then
@@ -269,41 +265,105 @@ if systemctl get-default | grep -q "multi-user.target" && [ -f "/etc/systemd/sys
     echo "   Skipping console auto-login configuration..."
     CONSOLE_CONFIGURED=true
 else
-    read -p "Would you like to configure console auto-login instead of desktop? (y/N): " -n 1 -r
-    echo
-    if [[ $REPLY =~ ^[Yy]$ ]]; then
-        echo "📥 Downloading console auto-login script..."
-        
-        # Download and run console auto-login script
-        CONSOLE_SCRIPT_URL="https://raw.githubusercontent.com/ShackMate/ShackMate-HMI/main/configure-console-autologin.sh"
-        TEMP_CONSOLE_SCRIPT="/tmp/configure-console-autologin.sh"
-        
-        if command -v curl >/dev/null 2>&1; then
-            curl -sSL "$CONSOLE_SCRIPT_URL" -o "$TEMP_CONSOLE_SCRIPT"
-        elif command -v wget >/dev/null 2>&1; then
-            wget -q "$CONSOLE_SCRIPT_URL" -O "$TEMP_CONSOLE_SCRIPT"
-        else
-            echo "❌ Error: curl/wget not found"
-            exit 1
-        fi
-        
-        # Run console auto-login script (but don't auto-reboot)
-        chmod +x "$TEMP_CONSOLE_SCRIPT"
-        
-        # Modify the script to not auto-reboot (we'll handle that at the end)
-        sed -i '/read -p.*reboot now/,/fi$/d' "$TEMP_CONSOLE_SCRIPT"
-        sed -i '/reboot$/d' "$TEMP_CONSOLE_SCRIPT"
-        
-        "$TEMP_CONSOLE_SCRIPT"
-        rm -f "$TEMP_CONSOLE_SCRIPT"
-        
-        CONSOLE_CONFIGURED=true
-        echo "✅ Console auto-login configuration completed"
+    echo "📥 Configuring console auto-login for kiosk mode..."
+    
+    # Download and run console auto-login script
+    CONSOLE_SCRIPT_URL="https://raw.githubusercontent.com/ShackMate/ShackMate-HMI/main/configure-console-autologin.sh"
+    TEMP_CONSOLE_SCRIPT="/tmp/configure-console-autologin.sh"
+    
+    if command -v curl >/dev/null 2>&1; then
+        curl -sSL "$CONSOLE_SCRIPT_URL" -o "$TEMP_CONSOLE_SCRIPT"
+    elif command -v wget >/dev/null 2>&1; then
+        wget -q "$CONSOLE_SCRIPT_URL" -O "$TEMP_CONSOLE_SCRIPT"
     else
-        echo "Skipping console auto-login configuration"
-        CONSOLE_CONFIGURED=false
+        echo "❌ Error: curl/wget not found"
+        exit 1
     fi
+    
+    # Run console auto-login script (but don't auto-reboot)
+    chmod +x "$TEMP_CONSOLE_SCRIPT"
+    
+    # Modify the script to not auto-reboot (we'll handle that at the end)
+    sed -i '/read -p.*reboot now/,/fi$/d' "$TEMP_CONSOLE_SCRIPT"
+    sed -i '/reboot$/d' "$TEMP_CONSOLE_SCRIPT"
+    
+    "$TEMP_CONSOLE_SCRIPT"
+    rm -f "$TEMP_CONSOLE_SCRIPT"
+    
+    CONSOLE_CONFIGURED=true
+    echo "✅ Console auto-login configuration completed"
 fi
+
+echo ""
+echo "🌐 Step 5: Creating Kiosk Browser Setup Script"
+echo "=============================================="
+
+# Get the real user (not root)
+REAL_USER=${SUDO_USER:-$(whoami)}
+USER_HOME=$(eval echo "~$REAL_USER")
+
+# Create a simple kiosk browser setup script for after reboot
+KIOSK_SCRIPT="$USER_HOME/start-kiosk-browser.sh"
+
+cat > "$KIOSK_SCRIPT" << 'EOF'
+#!/bin/bash
+
+# ShackMate Kiosk Browser Launcher
+# Run this script after reboot to start the kiosk browser
+
+echo "🚀 Starting ShackMate Kiosk Browser..."
+
+# Wait for system to be ready
+sleep 5
+
+# Start X server if not running
+if ! pgrep Xorg > /dev/null; then
+    echo "🖥️  Starting X server..."
+    startx /usr/bin/openbox-session -- :0 vt1 &
+    sleep 10
+fi
+
+# Start Docker services
+echo "🐳 Starting Docker services..."
+cd ~/docker 2>/dev/null || cd /home/$(whoami)/docker
+docker-compose up -d
+sleep 10
+
+# Wait for localhost to respond
+echo "⏳ Waiting for web service..."
+for i in {1..30}; do
+    if curl -s http://localhost > /dev/null; then
+        echo "✅ Web service is ready!"
+        break
+    fi
+    sleep 2
+done
+
+# Launch Chromium in kiosk mode
+echo "🌐 Launching Chromium kiosk..."
+export DISPLAY=:0
+chromium \
+    --kiosk \
+    --no-sandbox \
+    --disable-dev-shm-usage \
+    --disable-gpu \
+    --no-default-browser-check \
+    --no-first-run \
+    --start-maximized \
+    --disable-infobars \
+    --disable-features=TranslateUI \
+    --user-data-dir=/tmp/chromium-kiosk \
+    http://localhost &
+
+echo "✅ Kiosk browser started!"
+echo "🎯 ShackMate interface should now be visible on the display."
+EOF
+
+# Make the script executable and owned by the user
+chmod +x "$KIOSK_SCRIPT"
+chown "$REAL_USER:$REAL_USER" "$KIOSK_SCRIPT"
+
+echo "✅ Kiosk browser setup script created: $KIOSK_SCRIPT"
 
 echo ""
 echo "✨ Installation completed successfully!"
@@ -318,15 +378,14 @@ echo "   • Listening on UDP port 4210 for router updates"
 echo "   • Updates /etc/hosts with discovered router IP"
 echo "   • Docker and Docker Compose installed"
 echo "   • Docker configuration restored from GitHub"
-if [ "$CONSOLE_CONFIGURED" = "true" ]; then
-    echo "   • Console auto-login configured (boots to command line)"
-fi
+echo "   • Console auto-login configured (boots to command line)"
+echo "   • Kiosk browser setup script created: $KIOSK_SCRIPT"
 echo ""
 echo "🔄 Next steps:"
 echo "   1. Reboot to apply all changes: sudo reboot"
-echo "   2. Check UDP service: sudo systemctl status shackmate-udp-listener"
-echo "   3. Test Docker: docker run hello-world"
-echo "   4. Start Docker services: cd ~/docker && docker-compose up -d"
+echo "   2. After reboot, run the kiosk script: ./start-kiosk-browser.sh"
+echo "   3. Check UDP service: sudo systemctl status shackmate-udp-listener"
+echo "   4. Test Docker: docker run hello-world"
 echo ""
 echo "🛠️  Useful commands:"
 echo "   • Check UDP service: sudo systemctl status shackmate-udp-listener"
