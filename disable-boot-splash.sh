@@ -141,6 +141,9 @@ fi
 echo "🔒 Disabling console on tty1..."
 systemctl mask getty@tty1.service 2>/dev/null || true
 
+# Create directory for getty service override
+mkdir -p /etc/systemd/system/getty@tty3.service.d/ 2>/dev/null || true
+
 # Create custom getty service for tty3 (hidden)
 cat > /etc/systemd/system/getty@tty3.service.d/override.conf << 'EOF'
 [Service]
@@ -149,8 +152,6 @@ ExecStart=-/sbin/agetty --autologin pi --noclear %I $TERM
 StandardInput=tty
 StandardOutput=tty
 EOF
-
-mkdir -p /etc/systemd/system/getty@tty3.service.d/ 2>/dev/null || true
 
 # Set framebuffer to reduce console output
 echo "📺 Configuring framebuffer console..."
