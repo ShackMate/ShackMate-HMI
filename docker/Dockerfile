@@ -1,15 +1,8 @@
 FROM php:8.4-apache
 
-# Install essential packages for Chromium kiosk and web server
-RUN apt-get update && apt-get upgrade -y && apt-get install -y \
-    chromium \
-    xinit \
-    xterm \
-    xvfb \
-    supervisor \
-    curl \
-    fonts-liberation \
-    libnss3 && \
+# Install essential packages
+RUN apt-get update && apt-get upgrade -y && \
+    apt-get install -y chromium xinit xterm supervisor curl && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Enable Apache modules and configure
@@ -30,9 +23,9 @@ COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
-# Copy Chromium startup script
-COPY start-chromium.sh /usr/local/bin/start-chromium.sh
-RUN chmod +x /usr/local/bin/start-chromium.sh
+# Copy custom browser startup script
+COPY shackmate_browser.sh /usr/local/bin/shackmate_browser.sh
+RUN chmod +x /usr/local/bin/shackmate_browser.sh
 
 # Copy UDP listener
 COPY udp_listener.py /usr/local/bin/udp_listener.py
