@@ -1,26 +1,14 @@
 FROM php:8.4-apache
 
-# Install Chromium, Xvfb, and Supervisor with additional display support
-RUN apt-get update && apt-get install -y \
-    chromium \
+# Install essential packages for Chromium kiosk and web server
+RUN apt-get update && apt-get upgrade -y && apt-get install -y \
+    chromium-browser \
+    xinit \
+    xterm \
     xvfb \
-    x11-utils \
-    x11-xserver-utils \
-    xfonts-base \
-    xfonts-75dpi \
-    xfonts-100dpi \
     supervisor \
     curl \
-    dbus-x11 \
     fonts-liberation \
-    libasound2 \
-    libatk-bridge2.0-0 \
-    libdrm2 \
-    libxcomposite1 \
-    libxdamage1 \
-    libxrandr2 \
-    libgbm1 \
-    libxss1 \
     libnss3 && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
