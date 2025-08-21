@@ -1,137 +1,175 @@
-# ShackMate Docker Configuration
+# ShackMate Docker Kiosk Setup
 
-This folder contains Docker configurations that will be automatically restored to `~/docker` on the Raspberry Pi during installation.
+This directory contains a complete self-contained Docker solution for running ShackMate as a kiosk system on Raspberry Pi.
 
-## How It Works
+## 🎯 What This Does
 
-1. **Add your Docker files to this folder** in the GitHub repo
-2. **Run the installer** - files are automatically downloaded and restored
-3. **Docker is installed** and configured automatically
-4. **Your containers are ready to start**
+- **Web Interface**: Serves the ShackMate PHP application via Apache
+- **Kiosk Browser**: Automatically opens Chromium in fullscreen kiosk mode
+- **UDP Listener**: Receives router IP updates on port 8080 and updates hostname resolution
+- **Auto-Start**: Automatically starts on boot and restarts if containers fail
+- **Hardware Access**: Full access to Raspberry Pi touchscreen and display hardware
 
-## Folder Structure
+## 📁 Files
 
-```text
-docker/
-├── README.md                 # This file
-├── docker-compose.yml        # Main compose file (example)
-├── .env                      # Environment variables (if needed)
-└── services/                 # Individual service configurations
-    ├── app1/
-    │   ├── Dockerfile
-    │   └── config/
-    └── app2/
-        ├── docker-compose.yml
-        └── data/
+- `Dockerfile` - Container definition with minimal packages
+- `supervisord.conf` - Service orchestration for Apache, UDP listener, and browser
+- `entrypoint.sh` - Container initialization script
+- `run-shackmate-container.sh` - Docker run command with all required permissions
+- `install-docker-kiosk.sh` - Complete installation script
+- `shackmate-docker.service` - Systemd service for auto-start
+- `README.md` - This documentation
+
+## 🚀 Quick Install
+
+1. **Install Docker** (if not already installed):
+   ```bash
+   curl -fsSL https://get.docker.com | sh
+   sudo usermod -aG docker $USER
+   sudo systemctl enable docker
+   sudo systemctl start docker
+   ```
+
+2. **Install ShackMate Docker Kiosk**:
+   ```bash
+   cd /opt/shackmate/ShackMate/ShackMate-HMI/docker
+   sudo ./install-docker-kiosk.sh
+   ```
+
+3. **Start the service**:
+   ```bash
+   sudo systemctl start shackmate-docker
+   ```
+
+## 🔧 Manual Usage
+
+### Build the Image
+```bash
+cd /opt/shackmate/ShackMate/ShackMate-HMI/docker
+docker build -t shackmate-kiosk .
 ```
 
-## Installation
-
-The Docker configuration is installed automatically when you run:
-
+### Run Container Manually
 ```bash
-curl -sSL https://raw.githubusercontent.com/ShackMate/ShackMate-HMI/main/install-shackmate-complete.sh | sudo bash
+./run-shackmate-container.sh
 ```
 
-Or install just Docker and restore configuration:
-
+### Check Status
 ```bash
-curl -sSL https://raw.githubusercontent.com/ShackMate/ShackMate-HMI/main/install-docker.sh | sudo bash
+# Service status
+sudo systemctl status shackmate-docker
+
+# Container status
+docker ps | grep shackmate-kiosk
+
+# Container logs
+docker logs -f shackmate-kiosk
 ```
 
-## What Gets Installed
+## 🛠️ Troubleshooting
 
-- ✅ Docker CE (latest stable)
-- ✅ Docker Compose (latest)
-- ✅ User added to docker group
-- ✅ Docker service enabled and started
-- ✅ All files from this folder copied to `~/docker`
-- ✅ Proper file permissions set
-
-## Usage After Installation
-
+### Display Issues
+If the browser doesn't appear on the screen:
 ```bash
-# Navigate to docker directory
-cd ~/docker
+# Check X11 permissions
+xhost +local:
 
-# Start your services
-docker-compose up -d
+# Verify DISPLAY environment
+echo $DISPLAY
 
-# View running containers
-docker ps
-
-# View logs
-docker-compose logs -f
-
-# Stop services
-docker-compose down
+# Check container display access
+docker exec -it shackmate-kiosk env | grep DISPLAY
 ```
 
-## Adding Your Configuration
-
-1. **Copy your docker files** to this GitHub folder
-2. **Commit and push** to the repository
-3. **Future installations** will automatically restore them
-
-### Example Files to Add
-
-- `docker-compose.yml` - Your main compose configuration
-- `.env` - Environment variables
-- `Dockerfile` - Custom container builds
-- `config/` - Application configuration files
-- `data/` - Persistent data (consider using .gitignore for large files)
-- `scripts/` - Helper scripts for container management
-
-## Environment Variables
-
-If you use environment variables, create a `.env` file:
-
+### Network Issues
+If hostname resolution fails:
 ```bash
-# .env file example
-APP_PORT=8080
-DB_PASSWORD=your-secure-password
-API_KEY=your-api-key
+# Check UDP listener logs
+docker logs shackmate-kiosk | grep UDP
+
+# Test UDP manually
+echo "10.146.1.241" | nc -u localhost 8080
+
+# Check hosts file in container
+docker exec -it shackmate-kiosk cat /etc/hosts
 ```
 
-## Best Practices
-
-- ✅ Use `.gitignore` for sensitive data and large files
-- ✅ Use volume mounts for persistent data
-- ✅ Set restart policies: `restart: unless-stopped`
-- ✅ Use specific image tags instead of `latest`
-- ✅ Document your services in comments
-
-## Troubleshooting
-
-### Docker Permission Denied
-
+### Permission Issues
+If services fail to start:
 ```bash
-# Logout and login again, or reboot
-sudo reboot
+# Container should run as root
+docker exec -it shackmate-kiosk whoami
 
-# Or manually refresh groups
-newgrp docker
+# Check supervisor status
+docker exec -it shackmate-kiosk supervisorctl status
 ```
 
-### Container Won't Start
+## 🔄 Service Management
 
 ```bash
-# Check logs
-docker-compose logs service-name
+# Start service
+sudo systemctl start shackmate-docker
 
-# Check Docker daemon
-sudo systemctl status docker
+# Stop service
+sudo systemctl stop shackmate-docker
 
-# Check available space
-df -h
+# Restart service
+sudo systemctl restart shackmate-docker
+
+# Disable auto-start
+sudo systemctl disable shackmate-docker
+
+# Re-enable auto-start
+sudo systemctl enable shackmate-docker
 ```
 
-### Port Conflicts
+## 📝 Key Features
 
-```bash
-# Check what's using a port
-sudo ss -tlnp | grep :8080
+### Self-Contained Operation
+- All services run within the Docker container
+- No host system modifications required (except Docker)
+- Complete isolation from host environment
 
-# Find Docker containers using ports
-docker ps --format "table {{.Names}}\t{{.Ports}}"
+### Hardware Integration
+- Full access to Raspberry Pi touchscreen via privileged mode
+- X11 framebuffer access for display output
+- USB and GPIO device access if needed
+
+### Automatic Recovery
+- Container automatically restarts on failure
+- Service starts automatically on system boot
+- Supervisor manages all internal processes
+
+### Network Communication
+- UDP listener receives router IP updates
+- Automatic hostname resolution updates
+- Web interface accessible via hostname or IP
+
+## 🔍 Architecture
+
+```
+┌─────────────────────────────────────┐
+│ ShackMate Docker Container          │
+│                                     │
+│ ┌─────────────┐ ┌─────────────────┐ │
+│ │   Apache    │ │ UDP Listener    │ │
+│ │   (PHP)     │ │ (Python)        │ │
+│ │   :80       │ │ :8080           │ │
+│ └─────────────┘ └─────────────────┘ │
+│                                     │
+│ ┌─────────────────────────────────┐ │
+│ │ Chromium Kiosk Browser          │ │
+│ │ (Fullscreen Display)            │ │
+│ └─────────────────────────────────┘ │
+│                                     │
+│ Managed by Supervisord              │
+└─────────────────────────────────────┘
+          │
+          ▼
+┌─────────────────────────────────────┐
+│ Raspberry Pi Host System            │
+│ • Docker Engine                     │
+│ • X11 Display Server                │
+│ • Systemd Auto-Start                │
+└─────────────────────────────────────┘
 ```

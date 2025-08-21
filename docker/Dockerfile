@@ -2,12 +2,13 @@ FROM php:8.4-apache
 
 # Install essential packages
 RUN apt-get update && apt-get upgrade -y && \
-    apt-get install -y chromium xinit xterm supervisor curl && \
+    apt-get install -y python3 python3-pip chromium xinit xterm supervisor curl netcat-openbsd && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Enable Apache modules and configure
 RUN a2enmod rewrite && \
-    echo "ServerName localhost" >> /etc/apache2/apache2.conf
+    echo "ServerName localhost" >> /etc/apache2/apache2.conf && \
+    echo "DirectoryIndex index.php index.html" >> /etc/apache2/apache2.conf
 
 # Create web root (safety)
 RUN mkdir -p /var/www/html
