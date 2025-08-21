@@ -21,7 +21,8 @@ if ! uname -a | grep -q "aarch64\|arm"; then
 fi
 
 # Configuration
-DOCKER_HUB_USER="${DOCKER_HUB_USER:-shackmate}"
+# Configuration
+DOCKER_HUB_USER="${DOCKER_HUB_USER:-n4ldr}"
 IMAGE_NAME="shackmate-kiosk"
 IMAGE_TAG="${IMAGE_TAG:-latest}"
 REPO_URL="https://github.com/ShackMate/ShackMate-HMI.git"

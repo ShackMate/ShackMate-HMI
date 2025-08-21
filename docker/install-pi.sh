@@ -28,7 +28,7 @@ fi
 
 # Pull the latest image
 echo "📥 Pulling ShackMate image from DockerHub..."
-docker pull shackmate/shackmate-kiosk:latest
+docker pull n4ldr/shackmate-kiosk:latest
 
 # Enable X11 access
 echo "🖥️ Setting up X11 access..."
@@ -46,10 +46,10 @@ Wants=graphical.target
 [Service]
 Type=oneshot
 RemainAfterExit=yes
-ExecStartPre=/usr/bin/docker pull shackmate/shackmate-kiosk:latest
+ExecStartPre=/usr/bin/docker pull n4ldr/shackmate-kiosk:latest
 ExecStartPre=-/usr/bin/docker stop shackmate-kiosk
 ExecStartPre=-/usr/bin/docker rm shackmate-kiosk
-ExecStart=/usr/bin/docker run -d --name shackmate-kiosk --privileged --restart unless-stopped -p 8080:8080 -p 80:80 -e DISPLAY=:0 -v /tmp/.X11-unix:/tmp/.X11-unix:rw -v /dev:/dev -v /sys:/sys -v /proc:/proc --device-cgroup-rule='c *:* rmw' --cap-add=SYS_ADMIN --cap-add=NET_ADMIN --cap-add=SYS_TTY_CONFIG --cap-add=MKNOD --cap-add=DAC_OVERRIDE shackmate/shackmate-kiosk:latest /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
+ExecStart=/usr/bin/docker run -d --name shackmate-kiosk --privileged --restart unless-stopped -p 8080:8080 -p 80:80 -e DISPLAY=:0 -v /tmp/.X11-unix:/tmp/.X11-unix:rw -v /dev:/dev -v /sys:/sys -v /proc:/proc --device-cgroup-rule='c *:* rmw' --cap-add=SYS_ADMIN --cap-add=NET_ADMIN --cap-add=SYS_TTY_CONFIG --cap-add=MKNOD --cap-add=DAC_OVERRIDE n4ldr/shackmate-kiosk:latest /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
 ExecStop=/usr/bin/docker stop shackmate-kiosk
 ExecStopPost=/usr/bin/docker rm shackmate-kiosk
 TimeoutStartSec=300

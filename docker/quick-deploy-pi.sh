@@ -16,7 +16,7 @@ if [ ! -f "Dockerfile" ]; then
 fi
 
 # Configuration
-DOCKER_HUB_USER="${DOCKER_HUB_USER:-shackmate}"
+DOCKER_HUB_USER="${DOCKER_HUB_USER:-n4ldr}"
 IMAGE_NAME="shackmate-kiosk"
 IMAGE_TAG="${IMAGE_TAG:-latest}"
 

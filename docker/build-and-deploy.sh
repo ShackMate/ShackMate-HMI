@@ -4,7 +4,7 @@
 
 set -e  # Exit on any error
 
-DOCKER_HUB_USER="${DOCKER_HUB_USER:-shackmate}"
+DOCKER_HUB_USER="${DOCKER_HUB_USER:-n4ldr}"
 IMAGE_NAME="shackmate-kiosk"
 IMAGE_TAG="${IMAGE_TAG:-latest}"
 PI_HOST="${PI_HOST:-sm@10.146.1.254}"

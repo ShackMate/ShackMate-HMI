@@ -54,6 +54,11 @@ This directory contains a complete self-contained Docker solution for running Sh
    curl -fsSL https://raw.githubusercontent.com/ShackMate/ShackMate-HMI/main/docker/install-pi.sh | sudo bash
    ```
 
+   Or manually:
+   ```bash
+   sudo docker pull n4ldr/shackmate-kiosk:latest
+   ```
+
 ## 🔧 Manual Usage
 
 ### Build the Image
