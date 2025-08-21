@@ -22,6 +22,18 @@ This directory contains a complete self-contained Docker solution for running Sh
 
 ## 🚀 Quick Install
 
+### Option 1: Direct Pi Installation (Recommended)
+1. **SSH to your Raspberry Pi**:
+   ```bash
+   ssh sm@10.146.1.254  # or your Pi's IP
+   ```
+
+2. **Run the Pi build script**:
+   ```bash
+   curl -fsSL https://raw.githubusercontent.com/ShackMate/ShackMate-HMI/main/docker/build-on-pi.sh | bash
+   ```
+
+### Option 2: Manual Installation
 1. **Install Docker** (if not already installed):
    ```bash
    curl -fsSL https://get.docker.com | sh
@@ -30,15 +42,16 @@ This directory contains a complete self-contained Docker solution for running Sh
    sudo systemctl start docker
    ```
 
-2. **Install ShackMate Docker Kiosk**:
+2. **Clone and build on Pi**:
    ```bash
-   cd /opt/shackmate/ShackMate/ShackMate-HMI/docker
-   sudo ./install-docker-kiosk.sh
+   git clone https://github.com/ShackMate/ShackMate-HMI.git
+   cd ShackMate-HMI/docker
+   ./quick-deploy-pi.sh
    ```
 
-3. **Start the service**:
+3. **Or install from DockerHub**:
    ```bash
-   sudo systemctl start shackmate-docker
+   curl -fsSL https://raw.githubusercontent.com/ShackMate/ShackMate-HMI/main/docker/install-pi.sh | sudo bash
    ```
 
 ## 🔧 Manual Usage
