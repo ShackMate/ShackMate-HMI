@@ -23,10 +23,6 @@ COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
-# Copy custom browser startup script
-COPY shackmate_browser.sh /usr/local/bin/shackmate_browser.sh
-RUN chmod +x /usr/local/bin/shackmate_browser.sh
-
 # Copy UDP listener
 COPY udp_listener.py /usr/local/bin/udp_listener.py
 RUN chmod +x /usr/local/bin/udp_listener.py
