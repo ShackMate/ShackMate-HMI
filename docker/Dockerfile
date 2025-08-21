@@ -2,7 +2,7 @@ FROM php:8.4-apache
 
 # Install essential packages for Chromium kiosk and web server
 RUN apt-get update && apt-get upgrade -y && apt-get install -y \
-    chromium-browser \
+    chromium \
     xinit \
     xterm \
     xvfb \
