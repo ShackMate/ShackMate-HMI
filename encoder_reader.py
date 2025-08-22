@@ -10,6 +10,7 @@ import websockets
 import json
 import time
 import logging
+import struct
 from smbus2 import SMBus
 from threading import Thread, Lock
 import signal
@@ -42,28 +43,41 @@ class EncoderUnit:
         self.button_states = [False] * 8
         self.last_encoder_values = [0] * 8
         
-        # Test I2C connection
+        # Register definitions from encoder.h
+        self.ENCODER_REG = 0x00
+        self.INCREMENT_REG = 0x20
+        self.BUTTON_REG = 0x50
+        self.SWITCH_REG = 0x60
+        self.RGB_LED_REG = 0x70
+        self.RESET_COUNTER_REG = 0x40
+        self.FIRMWARE_VERSION_REG = 0xFE
+        self.I2C_ADDRESS_REG = 0xFF
+        
+        # Test I2C connection with firmware version read
         try:
-            self.bus.read_byte(self.addr)
-            logger.info(f"✅ Connected to 8-Encoder Unit at I2C address 0x{self.addr:02X}")
+            version = self.bus.read_byte_data(self.addr, self.FIRMWARE_VERSION_REG)
+            logger.info(f"✅ Connected to 8-Encoder Unit at I2C address 0x{self.addr:02X}, firmware v{version}")
         except Exception as e:
             logger.error(f"❌ Failed to connect to I2C device: {e}")
             raise
     
     def read_encoders(self):
-        """Read all 8 encoder positions (16-bit signed values)"""
+        """Read all 8 encoder positions (32-bit signed values)"""
         try:
             with self.lock:
-                # Read 16 bytes (8 encoders × 2 bytes each)
-                data = self.bus.read_i2c_block_data(self.addr, 0x00, 16)
-                
-                # Convert to signed 16-bit values
-                for i in range(8):
-                    raw_value = (data[i*2] << 8) | data[i*2 + 1]
-                    # Convert to signed 16-bit
-                    if raw_value > 32767:
-                        raw_value -= 65536
-                    self.encoder_values[i] = raw_value
+                # Read encoder values - each encoder is 4 bytes starting at ENCODER_REG
+                for encoder_idx in range(8):
+                    reg_addr = self.ENCODER_REG + (encoder_idx * 4)
+                    
+                    # Read 4 bytes for this encoder
+                    data = []
+                    for byte_offset in range(4):
+                        byte_val = self.bus.read_byte_data(self.addr, reg_addr + byte_offset)
+                        data.append(byte_val)
+                    
+                    # Convert 4 bytes to signed 32-bit integer (little-endian)
+                    encoder_value = struct.unpack('<i', bytes(data))[0]
+                    self.encoder_values[encoder_idx] = encoder_value
                     
         except Exception as e:
             logger.error(f"Error reading encoders: {e}")
@@ -72,8 +86,8 @@ class EncoderUnit:
         """Read all 8 button states (1 byte, 1 bit per button)"""
         try:
             with self.lock:
-                # Read button register (typically at offset 0x10)
-                button_byte = self.bus.read_byte_data(self.addr, 0x10)
+                # Read button status from correct register
+                button_byte = self.bus.read_byte_data(self.addr, self.BUTTON_REG)
                 
                 # Extract individual button states
                 for i in range(8):
