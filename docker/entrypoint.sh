@@ -77,13 +77,26 @@ def update_hosts_file(ip_address):
         logging.error(f"❌ Failed to update /etc/hosts: {str(e)}")
         return False
 
+def parse_shackmate_message(message):
+    """Parse ShackMate,IP,PORT message format"""
+    try:
+        parts = message.split(',')
+        if len(parts) == 3 and parts[0] == 'ShackMate':
+            ip_address = parts[1].strip()
+            port = parts[2].strip()
+            return ip_address, port
+        else:
+            return None, None
+    except Exception:
+        return None, None
+
 def main():
     """Main UDP listener function"""
     # Create socket
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    sock.bind(('0.0.0.0', 8080))
+    sock.bind(('0.0.0.0', 4210))
     
-    logging.info("🎧 UDP listener started on port 8080")
+    logging.info("🎧 UDP listener started on port 4210 for ShackMate discovery")
     
     while True:
         try:
@@ -92,12 +105,31 @@ def main():
             
             logging.info(f"📨 Received from {addr}: {message}")
             
-            # Update hosts file
-            if update_hosts_file(message):
-                # Send acknowledgment
-                sock.sendto(b"OK", addr)
-                logging.info(f"✅ Sent acknowledgment to {addr}")
+            # Parse the ShackMate message
+            ip_address, port = parse_shackmate_message(message)
+            
+            if ip_address and port:
+                logging.info(f"🔍 Parsed ShackMate discovery: IP={ip_address}, Port={port}")
+                
+                # Update hosts file with discovered IP
+                if update_hosts_file(ip_address):
+                    # Send acknowledgment
+                    sock.sendto(b"OK", addr)
+                    logging.info(f"✅ Sent acknowledgment to {addr}")
+                else:
+                    sock.sendto(b"ERROR", addr)
+                    logging.info(f"❌ Sent error response to {addr}")
             else:
+                logging.warning(f"⚠️ Invalid message format. Expected: ShackMate,IP,PORT - Got: {message}")
+                sock.sendto(b"INVALID_FORMAT", addr)
+                
+        except Exception as e:
+            logging.error(f"❌ Error in UDP listener: {str(e)}")
+            time.sleep(1)
+
+if __name__ == "__main__":
+    main()
+EOF
                 sock.sendto(b"ERROR", addr)
                 logging.info(f"❌ Sent error response to {addr}")
                 
@@ -111,9 +143,6 @@ EOF
 
 # Make the UDP listener executable
 chmod +x /usr/local/bin/shackmate-udp-listener.py
-
-# Create initial hostname entry
-echo "10.146.1.241 shackmate.router" >> /etc/hosts
 
 echo "🚀 Starting services with Supervisor..."
 
