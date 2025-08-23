@@ -6,7 +6,7 @@ This directory contains a complete self-contained Docker solution for running Sh
 
 - **Web Interface**: Serves the ShackMate PHP application via Apache
 - **Kiosk Browser**: Automatically opens Chromium in fullscreen kiosk mode
-- **UDP Listener**: Receives router IP updates on port 8080 and updates hostname resolution
+- **UDP Listener**: Receives router IP updates on port 4210 and updates hostname resolution
 - **Auto-Start**: Automatically starts on boot and restarts if containers fail
 - **Hardware Access**: Full access to Raspberry Pi touchscreen and display hardware
 
@@ -106,7 +106,7 @@ If hostname resolution fails:
 docker logs shackmate-kiosk | grep UDP
 
 # Test UDP manually
-echo "10.146.1.241" | nc -u localhost 8080
+echo "10.146.1.241" | nc -u localhost 4210
 
 # Check hosts file in container
 docker exec -it shackmate-kiosk cat /etc/hosts
@@ -172,7 +172,7 @@ sudo systemctl enable shackmate-docker
 │ ┌─────────────┐ ┌─────────────────┐ │
 │ │   Apache    │ │ UDP Listener    │ │
 │ │   (PHP)     │ │ (Python)        │ │
-│ │   :80       │ │ :8080           │ │
+│ │   :80       │ │ :4210           │ │
 │ └─────────────┘ └─────────────────┘ │
 │                                     │
 │ ┌─────────────────────────────────┐ │
